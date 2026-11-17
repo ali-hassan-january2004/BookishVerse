@@ -3,10 +3,12 @@ const router = express.Router();
 const { param, body } = require('express-validator');
 const { protect } = require('../middleware/authMiddleware');
 const validate = require('../middleware/validate');
-const { getBooks, getBookById, createBook, updateBook, deleteBook } = require('../controllers/bookController');
+const { getBooks, getBookById, getAdminBooks, getAdminBookById, createBook, updateBook, deleteBook } = require('../controllers/bookController');
 
 router.get('/', getBooks);
 
+router.get('/admin', protect, getAdminBooks);
+router.get('/admin/:id', protect, param('id').isMongoId().withMessage('Invalid book id'), validate, getAdminBookById);
 router.get('/:id', param('id').isMongoId().withMessage('Invalid book id'), validate, getBookById);
 
 router.post(

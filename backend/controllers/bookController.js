@@ -39,7 +39,7 @@ const getBooks = asyncHandler(async (req, res) => {
 });
 
 const getBookById = asyncHandler(async (req, res) => {
-  const book = await Book.findById(req.params.id)
+  const book = await Book.findOne({ _id: req.params.id, status: 'published' })
     .populate('author')
     .populate('category')
     .populate('relatedBooks', 'title slug coverImage');
@@ -49,12 +49,28 @@ const getBookById = asyncHandler(async (req, res) => {
   res.json(book);
 });
 
-// Whitelist of fields an admin can actually set. Adjust the names to match
-// your real Book.js schema exactly — send me that file and I'll fine-tune this.
+const getAdminBooks = asyncHandler(async (req, res) => {
+  const books = await Book.find()
+    .populate('author', 'name')
+    .populate('category', 'name')
+    .sort('-updatedAt')
+    .limit(100);
+  res.json({ books });
+});
+
+const getAdminBookById = asyncHandler(async (req, res) => {
+  const book = await Book.findById(req.params.id)
+    .populate('author')
+    .populate('category')
+    .populate('relatedBooks', 'title slug coverImage');
+  if (!book) return res.status(404).json({ message: 'Book not found' });
+  res.json(book);
+});
+
 const ALLOWED_FIELDS = [
-  'title', 'slug', 'summary', 'coverImage', 'author', 'category',
-  'keyIdeas', 'lessons', 'chapterSummaries', 'relatedBooks',
-  'status', 'featured', 'tags'
+  'title', 'summary', 'description', 'publicationYear', 'whoShouldRead',
+  'affiliateLink', 'coverImage', 'author', 'category', 'keyIdeas', 'lessons',
+  'chapterSummaries', 'relatedBooks', 'status', 'featured'
 ];
 
 const pickAllowed = (body) => {
@@ -86,4 +102,4 @@ const deleteBook = asyncHandler(async (req, res) => {
   res.json({ message: 'Book removed' });
 });
 
-module.exports = { getBooks, getBookById, createBook, updateBook, deleteBook };
+module.exports = { getBooks, getBookById, getAdminBooks, getAdminBookById, createBook, updateBook, deleteBook };

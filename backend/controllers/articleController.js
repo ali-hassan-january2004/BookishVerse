@@ -15,8 +15,17 @@ const getArticles = asyncHandler(async (req, res) => {
   );
 });
 
+const getAdminArticles = asyncHandler(async (req, res) => {
+  const articles = await Article.find()
+    .populate('category', 'name')
+    .populate('author', 'name')
+    .sort('-updatedAt')
+    .limit(100);
+  res.json(articles);
+});
+
 const getArticleById = asyncHandler(async (req, res) => {
-  const article = await Article.findById(req.params.id)
+  const article = await Article.findOne({ _id: req.params.id, status: 'published' })
     .populate('category', 'name slug')
     .populate('author', 'name');
   if (!article) return res.status(404).json({ message: 'Article not found' });
@@ -53,4 +62,4 @@ const deleteArticle = asyncHandler(async (req, res) => {
   res.json({ message: 'Article removed' });
 });
 
-module.exports = { getArticles, getArticleById, createArticle, updateArticle, deleteArticle };
+module.exports = { getArticles, getAdminArticles, getArticleById, createArticle, updateArticle, deleteArticle };

@@ -4,10 +4,21 @@ const notFound = (req, res, next) => {
 };
 
 const errorHandler = (err, req, res, next) => {
-  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  let statusCode = err.statusCode || err.status || (res.statusCode === 200 ? 500 : res.statusCode);
+  let message = err.message;
+
+  if (err.name === 'ValidationError' || err.name === 'CastError' || err.name === 'MulterError') {
+    statusCode = err.name === 'MulterError' && err.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
+  } else if (err.code === 11000) {
+    statusCode = 409;
+    message = 'A record with that value already exists';
+  }
+
   res.status(statusCode).json({
-    message: err.message,
-    stack: process.env.NODE_ENV === 'production' ? undefined : err.stack
+    message: process.env.NODE_ENV === 'production' && statusCode >= 500
+      ? 'An unexpected error occurred'
+      : message,
+    ...(process.env.NODE_ENV === 'production' ? {} : { stack: err.stack })
   });
 };
 

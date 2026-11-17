@@ -18,25 +18,47 @@ const authorRoutes = require('./routes/authorRoutes');
 const articleRoutes = require('./routes/articleRoutes');
 const sitemapRoutes = require('./routes/sitemapRoutes');
 
-connectDB();
+if (!process.env.MONGO_URI) throw new Error('MONGO_URI must be configured before starting the API');
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET must be configured with at least 32 characters before starting the API');
+}
 
 const app = express();
 app.set('trust proxy', 1);
-app.use(helmet());  
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true })); // CHANGED — exact origin required, no more '*' fallback
+app.use(helmet());
+const allowedOrigins = (process.env.CLIENT_URL || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(null, false);
+  },
+  credentials: true
+}));
 app.use(cookieParser());
 app.use(express.json({ limit: '2mb' }));
-app.use(mongoSanitize());  
+app.use(mongoSanitize());
 app.use(morgan('dev'));
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(require('path').join(__dirname, 'uploads')));
 
-const apiLimiter = rateLimit({                                // NEW
+app.use('/api', (req, res, next) => {
+  const isMutation = !['GET', 'HEAD', 'OPTIONS'].includes(req.method);
+  const origin = req.get('origin');
+  if (isMutation && (!origin || !allowedOrigins.includes(origin))) {
+    return res.status(403).json({ message: 'Request origin is not allowed' });
+  }
+  next();
+});
+
+const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 200,
   message: { message: 'Too many requests, please try again later.' }
 });
 
-app.use('/api', apiLimiter); 
+app.use('/api', apiLimiter);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/auth', authRoutes);
@@ -52,4 +74,6 @@ app.use(notFound);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`BookishVerse API running on port ${PORT}`));
+connectDB().then(() => {
+  app.listen(PORT, () => console.log(`BookishVerse API running on port ${PORT}`));
+});

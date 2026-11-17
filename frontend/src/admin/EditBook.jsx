@@ -11,7 +11,7 @@ export default function EditBook() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    api.get(`/books/${id}`).then((r) => {
+    api.get(`/books/admin/${id}`).then((r) => {
       const book = r.data;
       setForm({
         ...book,

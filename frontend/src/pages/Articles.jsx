@@ -19,7 +19,7 @@ export default function Articles() {
         <div className="art-grid">
           {articles.map((a) => (
             <Link to={`/articles/${a._id}`} className="art-card" key={a._id}>
-              <div className="tag">{a.category}</div>
+              <div className="tag">{a.category?.name || 'Article'}</div>
               <h3>{a.title}</h3>
             </Link>
           ))}

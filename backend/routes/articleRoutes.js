@@ -3,9 +3,10 @@ const router = express.Router();
 const { param, body } = require('express-validator');
 const { protect } = require('../middleware/authMiddleware');
 const validate = require('../middleware/validate');
-const { getArticles, getArticleById, createArticle, updateArticle, deleteArticle } = require('../controllers/articleController');
+const { getArticles, getAdminArticles, getArticleById, createArticle, updateArticle, deleteArticle } = require('../controllers/articleController');
 
 router.get('/', getArticles);
+router.get('/admin', protect, getAdminArticles);
 router.get('/:id', param('id').isMongoId().withMessage('Invalid article id'), validate, getArticleById);
 
 router.post(

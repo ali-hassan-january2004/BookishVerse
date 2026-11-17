@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Link } from 'react-router-dom';
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
 import Home from './pages/Home.jsx';
@@ -12,11 +12,23 @@ import SearchResults from './pages/SearchResults.jsx';
 import AdminLogin from './pages/AdminLogin.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import { useAuth } from './context/AuthContext.jsx';
+import Loading from './components/Loading.jsx';
 
 function Protected({ children }) {
   const { admin, loading } = useAuth();
-  if (loading) return null; // or a spinner component if you want a visual
+  if (loading) return <main className="wrap block"><Loading /></main>;
   return admin ? children : <Navigate to="/admin/login" replace />;
+}
+
+function NotFound() {
+  return (
+    <main className="wrap block">
+      <p className="eyebrow">404 · Page not found</p>
+      <h1>Looks like this page is still a draft.</h1>
+      <p className="muted">The page may have moved, or the link may be incorrect.</p>
+      <Link to="/" className="cta">Back to the library</Link>
+    </main>
+  );
 }
 
 export default function App() {
@@ -41,6 +53,7 @@ export default function App() {
             </Protected>
           }
         />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />
     </>

@@ -13,8 +13,8 @@ export default function SearchBar() {
         if (q.trim()) navigate(`/search?q=${encodeURIComponent(q)}`);
       }}
     >
-      <input placeholder='Try "habits" or "Sapiens"...' value={q} onChange={(e) => setQ(e.target.value)} />
-      <button className="btn btn-accent">Search</button>
+      <input aria-label="Search book summaries" placeholder='Try "habits" or "Sapiens"...' value={q} onChange={(e) => setQ(e.target.value)} />
+      <button className="btn btn-accent" type="submit">Explore</button>
     </form>
   );
 }

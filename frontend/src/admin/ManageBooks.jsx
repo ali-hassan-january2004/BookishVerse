@@ -4,7 +4,7 @@ import api from '../services/api';
 
 export default function ManageBooks() {
   const [books, setBooks] = useState(null);
-  const load = () => api.get('/books?limit=100').then((r) => setBooks(r.data.books));
+  const load = () => api.get('/books/admin').then((r) => setBooks(r.data.books));
 
   useEffect(() => {
     load();
